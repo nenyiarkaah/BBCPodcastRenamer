@@ -1,0 +1,10 @@
+# Created by .ignore support plugin (hsz.mobi)
+### Standard template
+/RUNNING_PID
+/logs/
+/project/*-shim.sbt
+/project/project/
+/project/target/
+/target/
+.idea
+bin
