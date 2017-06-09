@@ -68,7 +68,7 @@ trait ComplexTagTools extends SimpleTagTools {
 
 
   def renameFilenameFromTags(item: PodcastItem, fields: Seq[FieldKey], separator: String) = Future {
-    val fileName = fields.map(item.tag.getFirst(_)).mkString(separator)
+    val fileName = stripIllegalCharacters(fields.map(item.tag.getFirst(_)).mkString(separator))
     new PodcastItem(item.podcastFile, item.tag, fileName, item.destDir, FileRenamed)
   }
 

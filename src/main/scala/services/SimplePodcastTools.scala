@@ -68,10 +68,16 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
 
     val podcasts = Await.result(podcastFutures, Duration.Inf)
 
-    val renamedPodcasts = renameExistingPodcasts(podcasts, settings.extensions) map {
+    val renameAgainstExistingPodcasts = renameExistingPodcasts(podcasts, settings.extensions)
+
+    val updatedPodcasts = renameAgainstExistingPodcasts map {
+      writeToPodcast(_)
+    }
+
+    val renamingPodcastFiles = updatedPodcasts map {
       renameFile(_)
     }
-    renamedPodcasts map {
+    renamingPodcastFiles map {
       movePodcast(_)
     }
   }
@@ -111,21 +117,25 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
   }
 
   def retagIfPodcastExist(item: PodcastItem, tags: List[Tag]): PodcastItem = {
-    doesPodcastExist(item.tag.getFirst(FieldKey.TITLE), tags) match {
+    val title = item.tag.getFirst(FieldKey.TITLE)
+    doesPodcastExist(title, tags) match {
       case 0 => item
-      case x =>
+      case x => {
         val tag = item.tag
         val artist: String = tag.getFirst(FieldKey.ARTIST)
         val title = tag.getFirst(FieldKey.TITLE) + " " + x
         val album = tag.getFirst(FieldKey.ALBUM)
         val genre = tag.getFirst(FieldKey.GENRE)
-        val fileName = artist + "-" + title
+        val fileName = artist + "-" + stripIllegalCharacters(title)
+        println("Existing Podcasts of the same name have been found. Renaming to " + fileName)
         new PodcastItem(item.podcastFile, renamePodcastTags(tag, new BBCTags(artist, title, album, album, genre)), fileName, item.destDir, ReTagged)
+      }
     }
   }
 
   def doesPodcastExist(s: String, tags: List[Tag]): Int = {
-    tags.filter(t => t.getFirst(FieldKey.TITLE).contains(s)).size
+    val occurrence = tags.filter(t => t.getFirst(FieldKey.TITLE).contains(s)).size
+    occurrence
   }
 
   def renamePodcastTags(tag: Tag, bbcTag: BBCTags): Tag = {
@@ -160,7 +170,10 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
       items match {
         case List() => itemBuilder
         case head :: tail =>
-          val matchingPreviousTags = previousTags.filter(p => p.getFirst(FieldKey.ALBUM) == head.tag.getFirst(FieldKey.ALBUM))
+          val album = head.tag.getFirst(FieldKey.ALBUM)
+          val matchingPreviousTags = previousTags.filter(p => {
+            p.getFirst(FieldKey.ALBUM) == album
+          })
           val newHead = retagIfPodcastExist(head,
             matchingPreviousTags)
           consume(tail, newHead.tag :: previousTags, newHead :: itemBuilder)

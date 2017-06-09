@@ -33,6 +33,10 @@ trait testData extends MockFactory {
   val defaultSettings = new PodSettings(source, destination, Array("m4a"))
   val defaultSettingsPodcast = new PodSettings(sourcePodcast, destinationPodcast, Array("m4a"))
   val defaultSettingsWithIncorrectSourceAndDestination = new PodSettings(sourceRandom, destinationRandom, Array("m4a"))
+  private val liveSource = "/Users/Nenyi/Music/podcasts"
+  private val liveDestination = "/Users/Nenyi/Downloads/podcasts"
+  val liveSettings = new PodSettings(liveSource, liveDestination, Array("m4a"))
+
 
   val testJSON = JsObject("source" -> JsString(source),
     "destination" -> JsString(destination), "extensions" -> JsArray(JsString("m4a")))

@@ -288,8 +288,8 @@ class SimplePodcastToolsTest extends FlatSpec with testData with ScalaFutures wi
         s extractField(secondResultTag, FieldKey.ARTIST) shouldBe "(Monki)"
         s extractField(secondResultTag, FieldKey.ORIGINAL_ARTIST) shouldBe "(Monki)"
         s extractField(secondResultTag, FieldKey.TITLE) shouldBe "Lee Foss Live Lights On Mix 2"
-        s extractField(secondResultTag, FieldKey.ALBUM) shouldBe s.extractField(secondTag, FieldKey.ALBUM)
-        s extractField(secondResultTag, FieldKey.ALBUM_ARTIST) shouldBe s.extractField(secondTag, FieldKey.ALBUM_ARTIST)
+        s extractField(secondResultTag, FieldKey.ALBUM) shouldBe "(BBC Radio 1)-Monki"
+        s extractField(secondResultTag, FieldKey.ALBUM_ARTIST) shouldBe "(BBC Radio 1)-Monki"
         secondResultGenre shouldBe secondTagGenre
     }
   }
@@ -301,6 +301,11 @@ class SimplePodcastToolsTest extends FlatSpec with testData with ScalaFutures wi
     val results = s process(defaultSettings)
     results.map(r => r.outCome shouldBe MoveSuccessful)
   }
+  //
+  //  it should "be able to handle  live test directories" in {
+  //    val results = s process liveSettings
+  //    results.map(r => r.outCome shouldBe MoveSuccessful)
+  //  }
 
 
   //  "getPodcasts" should "all files that have either been unprocessed" in {

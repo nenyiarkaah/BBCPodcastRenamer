@@ -44,19 +44,19 @@ trait SimpleTagTools {
     AudioFileIO.read(file).getTag
   }
 
-  val unprocessedBBCPodcast = Map("composer" -> "BBC iPlayer", "genre" -> "Music")
-
-  val processedBBCPodcast = Map("composer" -> "BBC iPlayer", "genre" -> "Podcast")
-
-  def isBBCPodcastTag(tag: Tag, criteria: Map[String, String]): Boolean = {
+  def isUnprocessedBBCPodcastTag(tag: Tag): Boolean = {
+    val unprocessedBBCPodcast = Map("composer" -> "BBC iPlayer", "genre" -> "Podcast")
     val composer = tag.getFirst(FieldKey.COMPOSER)
     val genre = tag.getFirst(FieldKey.GENRE)
-    composer == criteria("composer") && genre == criteria("genre")
+    composer == unprocessedBBCPodcast("composer") && genre != unprocessedBBCPodcast("genre")
   }
 
-  def isUnprocessedBBCPodcastTag(tag: Tag) = isBBCPodcastTag(tag, unprocessedBBCPodcast)
-
-  def isProcessedBBCPodcastTag(tag: Tag) = isBBCPodcastTag(tag, processedBBCPodcast)
+  def isProcessedBBCPodcastTag(tag: Tag): Boolean = {
+    val processedBBCPodcast = Map("composer" -> "BBC iPlayer", "genre" -> "Podcast")
+    val composer = tag.getFirst(FieldKey.COMPOSER)
+    val genre = tag.getFirst(FieldKey.GENRE)
+    composer == processedBBCPodcast("composer") && genre == processedBBCPodcast("genre")
+  }
 
   def isUnprocessedBBCPodcast(podcastItem: PodcastItem): Boolean = {
     isUnprocessedBBCPodcastTag(podcastItem.tag)
@@ -102,4 +102,5 @@ trait SimpleTagTools {
     tag
   }
 
+  def stripIllegalCharacters(fileName: String) = fileName.replace("\\", "-").replace("/", "-")
 }

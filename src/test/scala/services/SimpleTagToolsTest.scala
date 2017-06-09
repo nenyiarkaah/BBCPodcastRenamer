@@ -86,4 +86,11 @@ class SimpleTagToolsTest extends FlatSpec with BeforeAndAfter with SimpleTagTool
     }
   }
 
+  "stripIllegalCharacters" should "strip \\ from title name" in {
+    stripIllegalCharacters("06\\02\\2017") shouldBe "06-02-2017"
+  }
+  it should "strip / from the title name" in {
+    stripIllegalCharacters("06/02/2017") shouldBe "06-02-2017"
+  }
+
 }

@@ -18,3 +18,4 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 libraryDependencies += "commons-io" % "commons-io" % "2.5"
 libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % Test
 libraryDependencies += "com.github.pathikrit" %% "better-files" % "3.0.0"
+parallelExecution in Test := false
