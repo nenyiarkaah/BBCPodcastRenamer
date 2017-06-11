@@ -136,7 +136,7 @@ trait testData extends MockFactory {
 
   def audioFileWithNewFormat2 = {
     Logger.getLogger("org").setLevel(Level.OFF)
-    val audioFile = AudioFileIO.read(new File(source + getSeparator + "podcast7.m4a"))
+    val audioFile = AudioFileIO.read(new File(source + getSeparator + "podcast8.m4a"))
     val podcastTag1 = audioFile.getTag()
     podcastTag1.setField(FieldKey.ARTIST, "BBC Radio 6 Music")
     podcastTag1.setField(FieldKey.ORIGINAL_ARTIST, "")

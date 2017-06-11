@@ -102,5 +102,36 @@ trait SimpleTagTools {
     tag
   }
 
-  def stripIllegalCharacters(fileName: String) = fileName.replace("\\", "-").replace("/", "-")
+  val removeFieldFromField = (tag: Tag, referenceKey: FieldKey, destinationKey: FieldKey) => {
+    val referenceValue = tag.getFirst(referenceKey)
+    val destinationValue = tag.getFirst(destinationKey)
+    val newDestinationValue = removeLeadingPunctuation(destinationValue.replaceFirst(referenceValue, ""))
+    tag.setField(destinationKey, newDestinationValue)
+    tag
+  }
+
+  val splitField = (tag: Tag, key: FieldKey, seperator: String, index: Int) => {
+    val value = tag.getFirst(key)
+    val newValue = value.split(seperator)(index)
+    tag.setField(key, newValue)
+    tag
+  }
+
+  def removeLeadingPunctuation(str: String): String = {
+    str.split("").toList match {
+      case List() => ""
+      case head :: tail =>
+        isAlphaNumeric(head) match {
+          case true => head :: tail mkString ("")
+          case false => removeLeadingPunctuation(tail.mkString(""))
+        }
+    }
+
+  }
+
+  val alphaNumeric = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).toSet
+
+  def isAlphaNumeric(s: String) = s.forall(alphaNumeric.contains(_))
+
+  def stripIllegalCharacters(fileName: String) = fileName.replace("\\", "-").replace("/", "-").replace("!", "")
 }

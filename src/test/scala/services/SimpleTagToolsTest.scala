@@ -36,6 +36,9 @@ class SimpleTagToolsTest extends FlatSpec with BeforeAndAfter with SimpleTagTool
   "isUnprocessedBBCPodcast" should "be true if the BBC were the composer and  the genre is not Podcast" in {
     whenReady(extractPodcastTagsFuture(audioFile3)) { result => isUnprocessedBBCPodcastTag(result.get) shouldBe true }
   }
+  it should "be true with BBC's new format of composer 'BBC iPlayer' and genre is not Podcast " in {
+    whenReady(extractPodcastTagsFuture(audioFileWithNewFormat1)) { result => isUnprocessedBBCPodcastTag(result.get) shouldBe true }
+  }
 
   it should "be false if the BBC were the composer and  the genre is Podcast" in {
     whenReady(extractPodcastTagsFuture(audioFile6)) { result => isUnprocessedBBCPodcastTag(result.get) shouldBe false }
@@ -86,6 +89,21 @@ class SimpleTagToolsTest extends FlatSpec with BeforeAndAfter with SimpleTagTool
     }
   }
 
+  "splitField" should "be able to split by : to get the artist" in {
+    whenReady(extractPodcastTagsFuture(audioFileWithNewFormat2)) {
+      result =>
+        val newResult = splitField(result.get, FieldKey.ALBUM, ":", 0)
+        newResult.getFirst(FieldKey.ALBUM) shouldBe "Chris Cornell"
+    }
+  }
+  it should "be able to handle strings with no split character in it." in {
+    whenReady(extractPodcastTagsFuture(audioFile7)) {
+      result =>
+        val newResult = splitField(result.get, FieldKey.ALBUM, ":", 0)
+        newResult.getFirst(FieldKey.ALBUM) shouldBe "Monki"
+    }
+  }
+
   "stripIllegalCharacters" should "strip \\ from title name" in {
     stripIllegalCharacters("06\\02\\2017") shouldBe "06-02-2017"
   }
@@ -93,4 +111,8 @@ class SimpleTagToolsTest extends FlatSpec with BeforeAndAfter with SimpleTagTool
     stripIllegalCharacters("06/02/2017") shouldBe "06-02-2017"
   }
 
+  "removeLeadingPunctuation" should "remove leading spaces" in {
+    val testString = "  Jeff Mills Special"
+    removeLeadingPunctuation(testString) shouldBe "Jeff Mills Special"
+  }
 }

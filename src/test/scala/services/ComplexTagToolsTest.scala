@@ -95,6 +95,65 @@ class ComplexTagToolsTest extends FlatSpec with BeforeAndAfter with ComplexTagTo
       }
     }
   }
+  it should "be able to produce a transform for the new format" in {
+    val transforms: Seq[(Tag) => Tag] = Seq(copyField(_, FieldKey.ALBUM, FieldKey.ARTIST),
+      removeFieldFromField(_, FieldKey.ARTIST, FieldKey.TITLE),
+      renameField(_, FieldKey.ARTIST, renameArtistPattern), copyField(_, FieldKey.ARTIST, FieldKey.ORIGINAL_ARTIST),
+      renameField(_, FieldKey.ALBUM, renameAlbumPattern), copyField(_, FieldKey.ALBUM, FieldKey.ALBUM_ARTIST),
+      renameField(_, FieldKey.GENRE, renameGenrePattern))
+    whenReady(constructPodcastItem(audioFileWithNewFormat1)) { result =>
+      whenReady(TransformPodcastTags(result.get, transforms)) {
+        transformedItem =>
+          transformedItem.tag.getFirst(FieldKey.ARTIST) shouldBe "(B.Traits)"
+          transformedItem.tag.getFirst(FieldKey.ORIGINAL_ARTIST) shouldBe "(B.Traits)"
+          transformedItem.tag.getFirst(FieldKey.TITLE) shouldBe "Jeff Mills Special"
+          transformedItem.tag.getFirst(FieldKey.ALBUM) shouldBe "(BBC Radio 1)-B.Traits"
+          transformedItem.tag.getFirst(FieldKey.ALBUM_ARTIST) shouldBe "(BBC Radio 1)-B.Traits"
+          transformedItem.tag.getFirst(FieldKey.GENRE) shouldBe "Podcast"
+          transformedItem.tag.getFirst(FieldKey.COMPOSER) shouldBe "BBC iPlayer"
+      }
+    }
+  }
+  it should "be able to produce a transform for the Chris Cornell format" in {
+    val transforms: Seq[(Tag) => Tag] = Seq(copyField(_, FieldKey.ALBUM, FieldKey.ARTIST),
+      splitField(_, FieldKey.ARTIST, ":", 0), splitField(_, FieldKey.ALBUM, ":", 0),
+      removeFieldFromField(_, FieldKey.ARTIST, FieldKey.TITLE),
+      renameField(_, FieldKey.ARTIST, renameArtistPattern), copyField(_, FieldKey.ARTIST, FieldKey.ORIGINAL_ARTIST),
+      renameField(_, FieldKey.ALBUM, renameAlbumPattern), copyField(_, FieldKey.ALBUM, FieldKey.ALBUM_ARTIST),
+      renameField(_, FieldKey.GENRE, renameGenrePattern))
+    whenReady(constructPodcastItem(audioFileWithNewFormat2)) { result =>
+      whenReady(TransformPodcastTags(result.get, transforms)) {
+        transformedItem =>
+          transformedItem.tag.getFirst(FieldKey.ARTIST) shouldBe "(Chris Cornell)"
+          transformedItem.tag.getFirst(FieldKey.ORIGINAL_ARTIST) shouldBe "(Chris Cornell)"
+          transformedItem.tag.getFirst(FieldKey.TITLE) shouldBe "A 6 Music Tribute"
+          transformedItem.tag.getFirst(FieldKey.ALBUM) shouldBe "(BBC Radio 1)-Chris Cornell"
+          transformedItem.tag.getFirst(FieldKey.ALBUM_ARTIST) shouldBe "(BBC Radio 1)-Chris Cornell"
+          transformedItem.tag.getFirst(FieldKey.GENRE) shouldBe "Podcast"
+          transformedItem.tag.getFirst(FieldKey.COMPOSER) shouldBe "BBC iPlayer"
+      }
+    }
+  }
+  it should "be able to use the new transform sequence to work with old podcasts (pre April 2017)" in {
+    val transforms: Seq[(Tag) => Tag] = Seq(copyField(_, FieldKey.ALBUM, FieldKey.ARTIST),
+      removeFieldFromField(_, FieldKey.ARTIST, FieldKey.TITLE),
+      renameField(_, FieldKey.ARTIST, renameArtistPattern), copyField(_, FieldKey.ARTIST, FieldKey.ORIGINAL_ARTIST),
+      renameField(_, FieldKey.ALBUM, renameAlbumPattern), copyField(_, FieldKey.ALBUM, FieldKey.ALBUM_ARTIST),
+      renameField(_, FieldKey.GENRE, renameGenrePattern))
+
+    whenReady(constructPodcastItem(audioFile5)) { result =>
+      whenReady(TransformPodcastTags(result.get, transforms)) {
+        transformedItem =>
+          transformedItem.tag.getFirst(FieldKey.ARTIST) shouldBe "(Monki)"
+          transformedItem.tag.getFirst(FieldKey.ORIGINAL_ARTIST) shouldBe "(Monki)"
+          transformedItem.tag.getFirst(FieldKey.TITLE) shouldBe "Lee Foss Live Lights On Mix"
+          transformedItem.tag.getFirst(FieldKey.ALBUM) shouldBe "(BBC Radio 1)-Monki"
+          transformedItem.tag.getFirst(FieldKey.ALBUM_ARTIST) shouldBe "(BBC Radio 1)-Monki"
+          transformedItem.tag.getFirst(FieldKey.GENRE) shouldBe "Podcast"
+          transformedItem.tag.getFirst(FieldKey.COMPOSER) shouldBe "BBC iPlayer"
+      }
+    }
+  }
 
   "renameFilenameFromTags" should "be able to rename file to artist name format" in {
     whenReady(constructPodcastItem(audioFile6)) {
