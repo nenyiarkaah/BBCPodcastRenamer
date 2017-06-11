@@ -132,6 +132,25 @@ trait testData extends MockFactory {
     audioFile.getFile
   }
 
+  def audioFileWithNewFormat1 = new File(source + getSeparator + "podcast7.m4a")
+
+  def audioFileWithNewFormat2 = {
+    Logger.getLogger("org").setLevel(Level.OFF)
+    val audioFile = AudioFileIO.read(new File(source + getSeparator + "podcast7.m4a"))
+    val podcastTag1 = audioFile.getTag()
+    podcastTag1.setField(FieldKey.ARTIST, "BBC Radio 6 Music")
+    podcastTag1.setField(FieldKey.ORIGINAL_ARTIST, "")
+    podcastTag1.setField(FieldKey.TITLE, "Chris Cornell: A 6 Music Tribute")
+    podcastTag1.setField(FieldKey.ALBUM, "Chris Cornell: A 6 Music Tribute")
+    podcastTag1.setField(FieldKey.ALBUM_ARTIST, "BBC Radio")
+    podcastTag1.setField(FieldKey.GENRE, "Music")
+    podcastTag1.setField(FieldKey.COMPOSER, "BBC iPlayer")
+    audioFile.setTag(podcastTag1)
+    audioFile.commit()
+    audioFile.getFile
+  }
+
+
   val finalItem = new PodcastItem(audioFile6, AudioFileIO.read(audioFile6).getTag, audioFile6.getName, destinationPodcast, FileRenamed)
   val finalItemCopy = new PodcastItem(audioFile5, AudioFileIO.read(audioFile6).getTag, "podcast6", destinationPodcast, FileRenamed)
   val sourceFinalItem = finalItem.destDir + getSeparator + finalItem.fileName
