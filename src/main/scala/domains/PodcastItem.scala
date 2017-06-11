@@ -17,5 +17,5 @@ case class RenamePattern(pattern: Regex, replacement: String)
 
 object OutCome extends Enumeration {
   type OutCome = Value
-  val TagsRead, TagsRenamed, RootDestinationMapped, DestinationMapped, FileRenamed, ReTagged, MoveSuccessful, MoveUnSuccessful = Value
+  val TagsRead, TagsRenamed, RootDestinationMapped, DestinationMapped, FileRenamed, ReTagged, UnTagged, MoveSuccessful, MoveUnSuccessful = Value
 }
