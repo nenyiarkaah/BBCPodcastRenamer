@@ -256,41 +256,48 @@ class SimplePodcastToolsTest extends FlatSpec with testData with ScalaFutures wi
   "renameExistingPodcasts" should "be able to find existing podcasts and rename matching new podcasts" in {
     whenReady(s getPodcasts (List(audioFile6, audioFile4))) {
       newItems =>
+        whenReady(s processExistingPodcasts (defaultSettings)) {
+          existingFiles =>
+            whenReady(s getPodcasts (existingFiles.toList)) {
+              existingPodcastItems =>
 
-        val items = newItems.map(n => s getPodcastDestination(n, defaultSettings.destination))
+                val items = newItems.map(n => s getPodcastDestination(n, defaultSettings.destination))
 
-        val firstItem = items.filter(_.fileName == "podcast4.m4a").head
-        val firstTag = firstItem.tag
-        val secondItem = items.filter(_.fileName == "podcast6.m4a").head
-        val secondTag = secondItem.tag
-        val resultingItems = s renameExistingPodcasts(items, defaultSettings.extensions)
-        resultingItems.size shouldBe 2
-        val firstResult = resultingItems.filter(_.fileName == "podcast4.m4a").head
-        val firstResultTag = firstResult.tag
-        val secondResult = resultingItems.filter(_.fileName != "podcast4.m4a").head
-        val secondResultTag = secondResult.tag
+                val firstItem = items.filter(_.fileName == "podcast4.m4a").head
+                val firstTag = firstItem.tag
+                val secondItem = items.filter(_.fileName == "podcast6.m4a").head
+                val secondTag = secondItem.tag
+                val existingTags = existingPodcastItems.map(_.tag)
+                val resultingItems = s renameExistingPodcasts(items, existingTags, defaultSettings.extensions)
+                resultingItems.size shouldBe 2
+                val firstResult = resultingItems.filter(_.fileName == "podcast4.m4a").head
+                val firstResultTag = firstResult.tag
+                val secondResult = resultingItems.filter(_.fileName != "podcast4.m4a").head
+                val secondResultTag = secondResult.tag
 
-        firstResult.destDir shouldBe firstItem.destDir
-        firstResult.fileName shouldBe firstItem.fileName
-        firstResult.podcastFile shouldBe firstItem.podcastFile
-        s extractField(firstResultTag, FieldKey.ARTIST) shouldBe s.extractField(firstTag, FieldKey.ARTIST)
-        s extractField(firstResultTag, FieldKey.ORIGINAL_ARTIST) shouldBe s.extractField(firstTag, FieldKey.ORIGINAL_ARTIST)
-        s extractField(firstResultTag, FieldKey.TITLE) shouldBe s.extractField(firstTag, FieldKey.TITLE)
-        s extractField(firstResultTag, FieldKey.ALBUM) shouldBe s.extractField(firstTag, FieldKey.ALBUM)
-        s extractField(firstResultTag, FieldKey.ALBUM_ARTIST) shouldBe s.extractField(firstTag, FieldKey.ALBUM_ARTIST)
-        s extractField(firstResultTag, FieldKey.GENRE) shouldBe s.extractField(firstTag, FieldKey.GENRE)
+                firstResult.destDir shouldBe firstItem.destDir
+                firstResult.fileName shouldBe firstItem.fileName
+                firstResult.podcastFile shouldBe firstItem.podcastFile
+                s extractField(firstResultTag, FieldKey.ARTIST) shouldBe s.extractField(firstTag, FieldKey.ARTIST)
+                s extractField(firstResultTag, FieldKey.ORIGINAL_ARTIST) shouldBe s.extractField(firstTag, FieldKey.ORIGINAL_ARTIST)
+                s extractField(firstResultTag, FieldKey.TITLE) shouldBe s.extractField(firstTag, FieldKey.TITLE)
+                s extractField(firstResultTag, FieldKey.ALBUM) shouldBe s.extractField(firstTag, FieldKey.ALBUM)
+                s extractField(firstResultTag, FieldKey.ALBUM_ARTIST) shouldBe s.extractField(firstTag, FieldKey.ALBUM_ARTIST)
+                s extractField(firstResultTag, FieldKey.GENRE) shouldBe s.extractField(firstTag, FieldKey.GENRE)
 
-        val secondTagGenre = s.extractField(secondTag, FieldKey.GENRE)
-        val secondResultGenre = s extractField(secondResultTag, FieldKey.GENRE)
-        secondResult.destDir shouldBe secondItem.destDir
-        secondResult.fileName shouldBe "(Monki)-Lee Foss Live Lights On Mix 2"
-        secondResult.podcastFile shouldBe secondItem.podcastFile
-        s extractField(secondResultTag, FieldKey.ARTIST) shouldBe "(Monki)"
-        s extractField(secondResultTag, FieldKey.ORIGINAL_ARTIST) shouldBe "(Monki)"
-        s extractField(secondResultTag, FieldKey.TITLE) shouldBe "Lee Foss Live Lights On Mix 2"
-        s extractField(secondResultTag, FieldKey.ALBUM) shouldBe "(BBC Radio 1)-Monki"
-        s extractField(secondResultTag, FieldKey.ALBUM_ARTIST) shouldBe "(BBC Radio 1)-Monki"
-        secondResultGenre shouldBe secondTagGenre
+                val secondTagGenre = s.extractField(secondTag, FieldKey.GENRE)
+                val secondResultGenre = s extractField(secondResultTag, FieldKey.GENRE)
+                secondResult.destDir shouldBe secondItem.destDir
+                secondResult.fileName shouldBe "(Monki)-Lee Foss Live Lights On Mix 2"
+                secondResult.podcastFile shouldBe secondItem.podcastFile
+                s extractField(secondResultTag, FieldKey.ARTIST) shouldBe "(Monki)"
+                s extractField(secondResultTag, FieldKey.ORIGINAL_ARTIST) shouldBe "(Monki)"
+                s extractField(secondResultTag, FieldKey.TITLE) shouldBe "Lee Foss Live Lights On Mix 2"
+                s extractField(secondResultTag, FieldKey.ALBUM) shouldBe "(BBC Radio 1)-Monki"
+                s extractField(secondResultTag, FieldKey.ALBUM_ARTIST) shouldBe "(BBC Radio 1)-Monki"
+                secondResultGenre shouldBe secondTagGenre
+            }
+        }
     }
   }
 
@@ -302,10 +309,10 @@ class SimplePodcastToolsTest extends FlatSpec with testData with ScalaFutures wi
     results.map(r => r.outCome shouldBe MoveSuccessful)
   }
   //
-  //  it should "be able to handle  live test directories" in {
-  //    val results = s process liveSettings
-  //    results.map(r => r.outCome shouldBe MoveSuccessful)
-  //  }
+  //    it should "be able to handle  live test directories" in {
+  //      val results = s process liveSettings
+  //      results.map(r => r.outCome shouldBe MoveSuccessful)
+  //    }
 
 
   //  "getPodcasts" should "all files that have either been unprocessed" in {

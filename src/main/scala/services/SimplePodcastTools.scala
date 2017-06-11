@@ -35,8 +35,9 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
   def process(settings: PodSettings) = {
     doesDirectoryExist(settings.source, "Source directory does not exist")
     val podcastItems = getPodcasts(getFiles(settings))
+    val existingPodcastItems = processExistingPodcasts(settings)
     val processed = isProcessedBBCPodcast(podcastItems)
-    val unProcessed = isUnprocessedBBCPodcast(podcastItems)
+    val unprocessed = isUnprocessedBBCPodcast(podcastItems)
 
     val renameArtistPattern = List(RenamePattern(new Regex(": (.*)"), ""), RenamePattern(new Regex("\\A"), "("), RenamePattern(new Regex("\\z"), ")"))
     val renameTitlePattern = List(RenamePattern(new Regex("(.*): "), ""))
@@ -44,31 +45,45 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
     val renameGenrePattern = List(RenamePattern(new Regex("[^\\n]+"), "Podcast"))
 
 
-    val unProcessedTransforms: Seq[(Tag) => Tag] = Seq(copyField(_, FieldKey.TITLE, FieldKey.ARTIST),
+    val unprocessedTransforms: Seq[(Tag) => Tag] = Seq(copyField(_, FieldKey.TITLE, FieldKey.ARTIST),
       renameField(_, FieldKey.ARTIST, renameArtistPattern), copyField(_, FieldKey.ARTIST, FieldKey.ORIGINAL_ARTIST),
       renameField(_, FieldKey.TITLE, renameTitlePattern), renameField(_, FieldKey.ALBUM, renameAlbumPattern),
       copyField(_, FieldKey.ALBUM, FieldKey.ALBUM_ARTIST), renameField(_, FieldKey.GENRE, renameGenrePattern))
 
+    val unprocessedTransformsNewFormat: Seq[(Tag) => Tag] = Seq(copyField(_, FieldKey.ALBUM, FieldKey.ARTIST),
+      splitField(_, FieldKey.ARTIST, ":", 0), splitField(_, FieldKey.ALBUM, ":", 0),
+      removeFieldFromField(_, FieldKey.ARTIST, FieldKey.TITLE),
+      renameField(_, FieldKey.ARTIST, renameArtistPattern), copyField(_, FieldKey.ARTIST, FieldKey.ORIGINAL_ARTIST),
+      renameField(_, FieldKey.ALBUM, renameAlbumPattern), copyField(_, FieldKey.ALBUM, FieldKey.ALBUM_ARTIST),
+      renameField(_, FieldKey.GENRE, renameGenrePattern))
+
+    val existingTagFutures = for {
+      existingPodcasts <- existingPodcastItems
+      exitingPodcastsItems <- constructPodcastItems(existingPodcasts.toList)
+    } yield exitingPodcastsItems map { item => item.tag }
+
     val podcastFutures = for {
-      processedPodcasts <- processed flatMap { p =>
+      renamedProcessedPodcasts <- processed flatMap { p =>
         Future.sequence(p.map(renameFilenameFromTags(_, Seq(FieldKey.ARTIST, FieldKey.TITLE), "-")))
       }
 
-      transformedUnProcessedPodcasts <- unProcessed flatMap { u =>
-        Future.sequence(u.map(TransformPodcastTags(_, unProcessedTransforms)))
+      transformedUnprocessedPodcasts <- unprocessed flatMap { u =>
+        Future.sequence(u.map(TransformPodcastTags(_, unprocessedTransformsNewFormat)))
       }
 
-      renamedPodcasts <- Future.sequence(transformedUnProcessedPodcasts map {
+      renamedUnprocessedPodcasts <- Future.sequence(transformedUnprocessedPodcasts map {
         renameFilenameFromTags(_, Seq(FieldKey.ARTIST, FieldKey.TITLE), "-")
       })
 
-      complete = renamedPodcasts ::: processedPodcasts
+      complete = renamedUnprocessedPodcasts ::: renamedProcessedPodcasts
 
     } yield complete map { c => mapPodcastDestination(getPodcastDestination(c, settings.destination)) }
 
     val podcasts = Await.result(podcastFutures, Duration.Inf)
 
-    val renameAgainstExistingPodcasts = renameExistingPodcasts(podcasts, settings.extensions)
+    val existingTags = Await.result(existingTagFutures, Duration.Inf)
+
+    val renameAgainstExistingPodcasts = renameExistingPodcasts(podcasts, existingTags, settings.extensions)
 
     val updatedPodcasts = renameAgainstExistingPodcasts map {
       writeToPodcast(_)
@@ -80,6 +95,10 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
     renamingPodcastFiles map {
       movePodcast(_)
     }
+  }
+
+  def processExistingPodcasts(settings: PodSettings): Future[Array[File]] = {
+    getRecursiveListOfFilesByFutures(new File(settings.destination), settings.extensions)
   }
 
   def getPodcasts(files: List[File]) = {
@@ -101,7 +120,7 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
   def renameFile(item: PodcastItem): PodcastItem = {
     val file = item.podcastFile
     val extension = FilenameUtils.getExtension(file.getName)
-    val name = FilenameUtils.removeExtension(item.fileName)
+    val name = item.fileName
     val fileName = file.getParent + getSeparator + name + "." + extension
     val renamedFile = new File(fileName)
     println("renaming file from " + file.getName + " to " + renamedFile)
@@ -119,7 +138,7 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
   def retagIfPodcastExist(item: PodcastItem, tags: List[Tag]): PodcastItem = {
     val title = item.tag.getFirst(FieldKey.TITLE)
     doesPodcastExist(title, tags) match {
-      case 0 => item
+      case 0 => new PodcastItem(item.podcastFile, item.tag, item.fileName, item.destDir, UnTagged)
       case x => {
         val tag = item.tag
         val artist: String = tag.getFirst(FieldKey.ARTIST)
@@ -150,17 +169,18 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
     tag
   }
 
-  def renameExistingPodcasts(items: List[PodcastItem], extensions: Array[String]) = {
-    val albums = items.map(_.destDir).distinct
-    val existingPodcasts = albums.map(a => getRecursiveListOfFilesByFutures(new File(a), extensions))
+  def renameExistingPodcasts(items: List[PodcastItem], existingTags: List[Tag], extensions: Array[String]) = {
+    val albums = items.map(_.tag.getFirst(FieldKey.ALBUM)).distinct
+    val filteredExistingTags = albums flatMap { album => existingTags.filter(_.getFirst(FieldKey.ALBUM) == album) }
+    //    val existingPodcasts = albums.map(a => getRecursiveListOfFilesByFutures(new File(a), extensions))
+    //
+    //    val existingTagFutures = for {
+    //     podcasts <- Future.sequence(existingPodcasts).map(_.flatten)
+    //    } yield podcasts map { t => extractPodcastTags(t) }
+    //
+    //    val existingTags = Await.result(existingTagFutures, Duration.Inf)
 
-    val existingTagFutures = for {
-     podcasts <- Future.sequence(existingPodcasts).map(_.flatten)
-    } yield podcasts map { t => extractPodcastTags(t) }
-
-    val existingTags = Await.result(existingTagFutures, Duration.Inf)
-
-    traverseExistingAndNewPodcasts(items, existingTags)
+    traverseExistingAndNewPodcasts(items, filteredExistingTags)
   }
 
   def traverseExistingAndNewPodcasts(items: List[PodcastItem], previousTags: List[Tag]) = {
