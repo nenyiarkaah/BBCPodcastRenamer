@@ -110,6 +110,9 @@ class SimpleTagToolsTest extends FlatSpec with BeforeAndAfter with SimpleTagTool
   it should "strip / from the title name" in {
     stripIllegalCharacters("06/02/2017") shouldBe "06-02-2017"
   }
+  it should "strip : from the real title name" in {
+    stripIllegalCharacters("(Friction)-Guest Mix: Ajd") shouldBe "(Friction)-Guest Mix Ajd"
+  }
 
   "removeLeadingPunctuation" should "remove leading spaces" in {
     val testString = "  Jeff Mills Special"

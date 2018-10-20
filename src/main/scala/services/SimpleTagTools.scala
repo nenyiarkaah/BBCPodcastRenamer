@@ -133,5 +133,8 @@ trait SimpleTagTools {
 
   def isAlphaNumeric(s: String) = s.forall(alphaNumeric.contains(_))
 
-  def stripIllegalCharacters(fileName: String) = fileName.replace("\\", "-").replace("/", "-").replace("!", "")
+  def stripIllegalCharacters(fileName: String) = fileName.replace("\\", "-")
+    .replace("/", "-")
+    .replace("!", "")
+    .replace(":", "")
 }
