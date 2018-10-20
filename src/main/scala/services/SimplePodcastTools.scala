@@ -32,12 +32,25 @@ class SimplePodcastTools extends SimpleFileTools with ComplexTagTools {
     }
   }
 
+  def documentPodcasts(podcastItems: Future[List[PodcastItem]], podcastType: String) = {
+    for ( p <- podcastItems ) yield println( s"Number of $podcastType found " + p.size + ".")
+  }
+
+  def documentPodcastFiles(podcastItems: Future[Array[File]], podcastType: String) = {
+    for ( p <- podcastItems ) yield println( s"Number of $podcastType found " + p.size + ".")
+  }
+
   def process(settings: PodSettings) = {
     doesDirectoryExist(settings.source, "Source directory does not exist")
     val podcastItems = getPodcasts(getFiles(settings))
+    documentPodcasts(podcastItems, "podcasts")
     val existingPodcastItems = processExistingPodcasts(settings)
+    documentPodcastFiles(existingPodcastItems, "existing podcasts")
     val processed = isProcessedBBCPodcast(podcastItems)
     val unprocessed = isUnprocessedBBCPodcast(podcastItems)
+
+    documentPodcasts(processed, "processed podcasts")
+    documentPodcasts(unprocessed, "unporcessed podcasts")
 
     val renameArtistPattern = List(RenamePattern(new Regex(": (.*)"), ""), RenamePattern(new Regex("\\A"), "("), RenamePattern(new Regex("\\z"), ")"))
     val renameTitlePattern = List(RenamePattern(new Regex("(.*): "), ""))
