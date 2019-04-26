@@ -1,9 +1,7 @@
 package services
 
-import domains.PodSettings
 import org.scalatest.Matchers._
 import org.scalatest.{BeforeAndAfter, FlatSpec}
-import spray.json.{JsArray, JsObject, JsString}
 
 /**
   * Created by Nenyi on 21/03/2017.
