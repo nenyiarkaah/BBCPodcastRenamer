@@ -16,5 +16,5 @@ libraryDependencies ++= Seq("org" % "jaudiotagger" % "2.0.3",
       "org.scalactic" %% "scalactic" % "3.0.1",
       "commons-io" % "commons-io" % "2.5",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % Test,
-      "com.github.pathikrit" %% "better-files" % "3.0.0")
+      "com.github.pathikrit" %% "better-files" % "3.7.1")
 parallelExecution in Test := false
