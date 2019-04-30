@@ -169,8 +169,10 @@ trait testData extends MockFactory {
   }
 
   def teardownTestResources: Unit  = {
+    dest.delete(false)
     destCopy.copyTo(dest, true)
     destCopy.delete(false)
+    src.delete(false)
     srcCopy.copyTo(src, true)
     srcCopy.delete(false)
   }

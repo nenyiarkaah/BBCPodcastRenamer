@@ -4,7 +4,7 @@ import domains._
 import org.jaudiotagger.tag.{FieldKey, Tag, TagField}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.Matchers._
-import org.scalatest.{BeforeAndAfter, FlatSpec}
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterEach, FlatSpec}
 import org.scalatest.concurrent.ScalaFutures
 
 import scala.util.matching.Regex
@@ -12,14 +12,14 @@ import scala.util.matching.Regex
 /**
   * Created by Nenyi on 09/04/2017.
   */
-class ComplexTagToolsTest extends FlatSpec with BeforeAndAfter with ComplexTagTools with MockFactory with testData with ScalaFutures {
+class ComplexTagToolsTest extends FlatSpec with BeforeAndAfter with ComplexTagTools with BeforeAndAfterEach
+  with MockFactory with testData with ScalaFutures {
 
-  def beforeEach() {
-
+  override def beforeEach() {
     setupTestResources
   }
 
-  def afterEach() {
+  override def afterEach() {
     teardownTestResources
   }
 

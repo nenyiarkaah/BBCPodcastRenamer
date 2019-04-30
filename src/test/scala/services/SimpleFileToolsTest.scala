@@ -5,16 +5,18 @@ import java.io.{File, FileNotFoundException}
 import domains.PodSettings
 import org.apache.commons.io.{FileExistsException, FilenameUtils}
 import org.scalatest.Matchers._
-import org.scalatest.{BeforeAndAfter, FlatSpec}
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterEach, FlatSpec}
 import org.scalatest.PrivateMethodTester._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
+
 import scala.util.{Failure, Try}
 
 /**
   * Created by Nenyi on 21/03/2017.
   */
-class SimpleFileToolsTest extends FlatSpec with BeforeAndAfter with MockFactory with testData with ScalaFutures {
+class SimpleFileToolsTest extends FlatSpec with BeforeAndAfter with BeforeAndAfterEach
+  with MockFactory with testData with ScalaFutures {
   val numberOfDestinationFiles = 13
   val numberOfDestinationSubDirectories = 4
   val numberOfDestinationSubDirectoriesUnderTestSize = 4
@@ -26,11 +28,11 @@ class SimpleFileToolsTest extends FlatSpec with BeforeAndAfter with MockFactory 
     deleteSettings(s settingsPath)
   }
 
-  def beforeEach {
+  override def beforeEach {
     setupTestResources
   }
 
-  def afterEach {
+  override def afterEach {
     teardownTestResources
     deleteSettings(s settingsPath)
   }
