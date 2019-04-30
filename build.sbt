@@ -12,7 +12,7 @@ lazy val root = (project in file(".")).
   )
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 libraryDependencies ++= Seq("org" % "jaudiotagger" % "2.0.3",
-      "io.spray" %%  "spray-json" % "1.3.3",
+      "io.spray" %%  "spray-json" % "1.3.5",
       "org.scalactic" %% "scalactic" % "3.0.1",
       "commons-io" % "commons-io" % "2.5",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % Test,
