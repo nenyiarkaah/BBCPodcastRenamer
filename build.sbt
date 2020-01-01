@@ -18,3 +18,8 @@ libraryDependencies ++= Seq("org" % "jaudiotagger" % "2.0.3",
       "org.scalamock" %% "scalamock" % "4.2.0" % Test,
       "com.github.pathikrit" %% "better-files" % "3.7.1")
 parallelExecution in Test := false
+
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
