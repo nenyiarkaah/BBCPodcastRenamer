@@ -9,7 +9,6 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
-//import better.files._
 import better.files.{File => ScalaFile, _}
 
 /**

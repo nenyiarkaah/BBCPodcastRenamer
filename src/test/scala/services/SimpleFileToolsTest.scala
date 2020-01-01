@@ -142,7 +142,6 @@ class SimpleFileToolsTest extends FlatSpec with BeforeAndAfter with BeforeAndAft
     result.getAbsolutePath shouldBe destinationPodcast + s.getSeparator + "0.1"
     result.delete
   }
-
   it should "return a valid sub directory of 1.1 no valid directories" in {
     val folder = new File(destinationPodcast + s.getSeparator + "1.0")
     folder.mkdir
@@ -152,7 +151,6 @@ class SimpleFileToolsTest extends FlatSpec with BeforeAndAfter with BeforeAndAft
     result.delete
     folder.delete
   }
-
   it should "return a valid sub directory of 1.1 when 1.1 valid directories" in {
     val folder = new File(destinationPodcast + s.getSeparator + "1.0")
     folder.mkdir
